@@ -27,12 +27,12 @@ type ImportSubtask struct {
 }
 
 type importRequest struct {
-	Files                 []importFile `json:"files"`
-	IsPartialImport       bool         `json:"isPartialImport"`
-	Collections           []any        `json:"collections"`
-	KeepFolderOrganization bool        `json:"keepFolderOrganization"`
-	PreserveCitationKey   bool         `json:"preserveCitationKey"`
-	ImportDuplicates      bool         `json:"importDuplicates"`
+	Files                  []importFile `json:"files"`
+	IsPartialImport        bool         `json:"isPartialImport"`
+	Collections            []any        `json:"collections"`
+	KeepFolderOrganization bool         `json:"keepFolderOrganization"`
+	PreserveCitationKey    bool         `json:"preserveCitationKey"`
+	ImportDuplicates       bool         `json:"importDuplicates"`
 }
 
 type importFile struct {
@@ -91,7 +91,7 @@ func (c *Client) initiateImport(fileName string, importDuplicates bool) (*Import
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/import/files", bytes.NewReader(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/import/files", bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -159,7 +159,7 @@ func (c *Client) notifyUploadComplete(taskID, subtaskID string) error {
 		return err
 	}
 
-	url := fmt.Sprintf("%s/tasks/%s/subtasks", baseURL, taskID)
+	url := fmt.Sprintf("%s/tasks/%s/subtasks", c.baseURL, taskID)
 	req, err := http.NewRequest(http.MethodPatch, url, bytes.NewReader(jsonBody))
 	if err != nil {
 		return err

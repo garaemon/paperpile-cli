@@ -7,12 +7,13 @@ import (
 	"net/http"
 )
 
-const baseURL = "https://api.paperpile.com/api"
+const defaultBaseURL = "https://api.paperpile.com/api"
 
 // Client is the Paperpile API client.
 type Client struct {
 	session    string
 	httpClient *http.Client
+	baseURL    string
 }
 
 // UserInfo represents the response from /api/users/me.
@@ -27,12 +28,13 @@ func NewClient(session string) *Client {
 	return &Client{
 		session:    session,
 		httpClient: &http.Client{},
+		baseURL:    defaultBaseURL,
 	}
 }
 
 // FetchCurrentUser calls /api/users/me to verify the session and return user info.
 func (c *Client) FetchCurrentUser() (*UserInfo, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/users/me", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/users/me", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
