@@ -102,7 +102,7 @@ func (c *Client) createAttachmentRecord(attachmentID, pubID, ownerID, fileName, 
 }
 
 func (c *Client) getAttachmentUploadURL(attachmentID, fileMD5, fileName string, fileSize int) (*S3UploadData, error) {
-	url := fmt.Sprintf("%s/attachments/%s/file?client_md5=%s", baseURL, attachmentID, fileMD5)
+	url := fmt.Sprintf("%s/attachments/%s/file?client_md5=%s", c.baseURL, attachmentID, fileMD5)
 
 	attachmentData := map[string]any{
 		"attachment": map[string]any{
@@ -189,7 +189,7 @@ func uploadToS3WithForm(uploadData *S3UploadData, fileData []byte) error {
 }
 
 func (c *Client) confirmAttachmentUpload(attachmentID, fileMD5 string) error {
-	url := fmt.Sprintf("%s/attachments/%s", baseURL, attachmentID)
+	url := fmt.Sprintf("%s/attachments/%s", c.baseURL, attachmentID)
 
 	reqBody := attachmentPatchRequest{
 		Updates: map[string]string{"s3_md5": fileMD5},

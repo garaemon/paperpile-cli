@@ -40,7 +40,7 @@ func (item *LibraryItem) FormatFirstAuthor() string {
 
 // FetchLibrary retrieves all items from the user's Paperpile library.
 func (c *Client) FetchLibrary() ([]LibraryItem, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/library", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/library", nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}

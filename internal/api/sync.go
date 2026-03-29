@@ -9,7 +9,8 @@ import (
 	"time"
 )
 
-const syncURL = baseURL + "/sync?v=3"
+// syncPath is the path for the sync endpoint.
+const syncPath = "/sync?v=3"
 
 type syncRequest struct {
 	SyncClientID   string           `json:"syncClientId"`
@@ -19,10 +20,10 @@ type syncRequest struct {
 
 // SyncResponse represents the response from POST /api/sync?v=3.
 type SyncResponse struct {
-	SyncStartTime    float64 `json:"syncStartTime"`
-	SyncSession      string  `json:"syncSession"`
-	TotalChanges     int     `json:"totalServerChanges"`
-	LastClientSync   float64 `json:"lastClientSync"`
+	SyncStartTime  float64 `json:"syncStartTime"`
+	SyncSession    string  `json:"syncSession"`
+	TotalChanges   int     `json:"totalServerChanges"`
+	LastClientSync float64 `json:"lastClientSync"`
 }
 
 // pushSyncChanges sends local changes to the server via the Sync API.
@@ -38,7 +39,7 @@ func (c *Client) pushSyncChanges(changes []map[string]any) (*SyncResponse, error
 		return nil, fmt.Errorf("failed to marshal sync request: %w", err)
 	}
 
-	req, err := http.NewRequest(http.MethodPost, syncURL, bytes.NewReader(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+syncPath, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
