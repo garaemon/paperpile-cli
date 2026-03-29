@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/garaemon/paperpile-cli/internal/api"
 	"github.com/garaemon/paperpile-cli/internal/config"
@@ -20,15 +22,17 @@ var deleteCmd = &cobra.Command{
 }
 
 func runDelete(cmd *cobra.Command, args []string) error {
-	itemID := args[0]
 	client := api.NewClient(config.GetSession())
+	return execDelete(client, os.Stdout, args[0])
+}
 
-	fmt.Printf("Trashing item %s ...\n", itemID)
+func execDelete(trasher ItemTrasher, out io.Writer, itemID string) error {
+	fmt.Fprintf(out, "Trashing item %s ...\n", itemID)
 
-	if err := client.TrashItem(itemID); err != nil {
+	if err := trasher.TrashItem(itemID); err != nil {
 		return fmt.Errorf("delete failed: %w", err)
 	}
 
-	fmt.Println("Done! Item moved to trash.")
+	fmt.Fprintln(out, "Done! Item moved to trash.")
 	return nil
 }

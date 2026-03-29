@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"text/tabwriter"
 
@@ -25,16 +26,20 @@ var listCmd = &cobra.Command{
 
 func runList(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	items, err := client.FetchLibrary()
+	return execList(client, os.Stdout, listTrashed)
+}
+
+func execList(fetcher LibraryFetcher, out io.Writer, includeTrashed bool) error {
+	items, err := fetcher.FetchLibrary()
 	if err != nil {
 		return fmt.Errorf("failed to fetch library: %w", err)
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 0, 4, 2, ' ', 0)
+	w := tabwriter.NewWriter(out, 0, 4, 2, ' ', 0)
 	fmt.Fprintln(w, "ID\tYEAR\tFIRST AUTHOR\tTITLE")
 
 	for _, item := range items {
-		if item.Trashed != 0 && !listTrashed {
+		if item.Trashed != 0 && !includeTrashed {
 			continue
 		}
 

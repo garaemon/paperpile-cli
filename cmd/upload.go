@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -35,14 +36,17 @@ func runUpload(cmd *cobra.Command, args []string) error {
 	}
 
 	client := api.NewClient(config.GetSession())
+	return execUpload(client, os.Stdout, filePath, uploadDuplicates)
+}
 
-	fmt.Printf("Uploading %s ...\n", filepath.Base(filePath))
+func execUpload(uploader PDFUploader, out io.Writer, filePath string, allowDuplicates bool) error {
+	fmt.Fprintf(out, "Uploading %s ...\n", filepath.Base(filePath))
 
-	task, err := client.UploadPDF(filePath, uploadDuplicates)
+	task, err := uploader.UploadPDF(filePath, allowDuplicates)
 	if err != nil {
 		return fmt.Errorf("upload failed: %w", err)
 	}
 
-	fmt.Printf("Done! Task ID: %s\n", task.ID)
+	fmt.Fprintf(out, "Done! Task ID: %s\n", task.ID)
 	return nil
 }
