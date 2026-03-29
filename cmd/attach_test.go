@@ -8,10 +8,10 @@ import (
 )
 
 type mockFileAttacher struct {
-	calledItemID  string
-	calledPath    string
-	attachmentID  string
-	err           error
+	calledItemID string
+	calledPath   string
+	attachmentID string
+	err          error
 }
 
 func (m *mockFileAttacher) AttachFile(itemID, filePath string) (string, error) {
