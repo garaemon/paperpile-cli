@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -34,14 +35,17 @@ func runAttach(cmd *cobra.Command, args []string) error {
 	}
 
 	client := api.NewClient(config.GetSession())
+	return execAttach(client, os.Stdout, itemID, filePath)
+}
 
-	fmt.Printf("Attaching %s to item %s ...\n", filepath.Base(filePath), itemID)
+func execAttach(attacher FileAttacher, out io.Writer, itemID, filePath string) error {
+	fmt.Fprintf(out, "Attaching %s to item %s ...\n", filepath.Base(filePath), itemID)
 
-	attachmentID, err := client.AttachFile(itemID, filePath)
+	attachmentID, err := attacher.AttachFile(itemID, filePath)
 	if err != nil {
 		return fmt.Errorf("attach failed: %w", err)
 	}
 
-	fmt.Printf("Done! Attachment ID: %s\n", attachmentID)
+	fmt.Fprintf(out, "Done! Attachment ID: %s\n", attachmentID)
 	return nil
 }

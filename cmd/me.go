@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
 
 	"github.com/garaemon/paperpile-cli/internal/api"
 	"github.com/garaemon/paperpile-cli/internal/config"
@@ -20,13 +22,17 @@ var meCmd = &cobra.Command{
 
 func runMe(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	user, err := client.FetchCurrentUser()
+	return execMe(client, os.Stdout)
+}
+
+func execMe(fetcher UserFetcher, out io.Writer) error {
+	user, err := fetcher.FetchCurrentUser()
 	if err != nil {
 		return fmt.Errorf("failed to fetch user info: %w", err)
 	}
 
-	fmt.Printf("Name:  %s\n", user.GoogleName)
-	fmt.Printf("Email: %s\n", user.GoogleEmail)
-	fmt.Printf("ID:    %s\n", user.ID)
+	fmt.Fprintf(out, "Name:  %s\n", user.GoogleName)
+	fmt.Fprintf(out, "Email: %s\n", user.GoogleEmail)
+	fmt.Fprintf(out, "ID:    %s\n", user.ID)
 	return nil
 }
