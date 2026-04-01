@@ -99,6 +99,22 @@ paperpile attach <item_id> paper.pdf
 
 Attaches a PDF file to a library item that does not yet have a PDF, or adds an additional file to an existing item.
 
+### `note get` - Get the note of a library item
+
+```bash
+paperpile note get <item_id>
+```
+
+Prints the note text attached to the item. If no note exists, prints `(no note)`.
+
+### `note set` - Set the note of a library item
+
+```bash
+paperpile note set <item_id> <text>...
+```
+
+Sets or replaces the note on a library item. Multiple arguments are joined with spaces.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.
