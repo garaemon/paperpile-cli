@@ -41,3 +41,8 @@ type NoteUpdater interface {
 type LabelFetcher interface {
 	FetchLabels() ([]api.Collection, error)
 }
+
+// ItemLabelGetter retrieves label names for a library item.
+type ItemLabelGetter interface {
+	GetItemLabelNames(itemID string) ([]string, error)
+}
