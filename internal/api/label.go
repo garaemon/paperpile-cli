@@ -177,8 +177,8 @@ func (c *Client) GetItemLabelNames(itemID string) ([]string, error) {
 	return names, nil
 }
 
-// AddLabelByName adds a label to a library item, resolving the label by name.
-func (c *Client) AddLabelByName(itemID, labelName string) error {
+// AssignLabelByName assigns a label to a library item, resolving the label by name.
+func (c *Client) AssignLabelByName(itemID, labelName string) error {
 	labelID, err := c.ResolveLabelName(labelName)
 	if err != nil {
 		return err
@@ -186,8 +186,8 @@ func (c *Client) AddLabelByName(itemID, labelName string) error {
 	return c.AddLabel(itemID, labelID)
 }
 
-// RemoveLabelByName removes a label from a library item, resolving the label by name.
-func (c *Client) RemoveLabelByName(itemID, labelName string) error {
+// UnassignLabelByName unassigns a label from a library item, resolving the label by name.
+func (c *Client) UnassignLabelByName(itemID, labelName string) error {
 	labelID, err := c.ResolveLabelName(labelName)
 	if err != nil {
 		return err

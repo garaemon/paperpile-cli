@@ -47,14 +47,14 @@ type ItemLabelGetter interface {
 	GetItemLabelNames(itemID string) ([]string, error)
 }
 
-// LabelAdder adds a label to a library item by name.
-type LabelAdder interface {
-	AddLabelByName(itemID, labelName string) error
+// LabelAssigner assigns a label to a library item by name.
+type LabelAssigner interface {
+	AssignLabelByName(itemID, labelName string) error
 }
 
-// LabelRemover removes a label from a library item by name.
-type LabelRemover interface {
-	RemoveLabelByName(itemID, labelName string) error
+// LabelUnassigner unassigns a label from a library item by name.
+type LabelUnassigner interface {
+	UnassignLabelByName(itemID, labelName string) error
 }
 
 // LabelCreator creates a new label.

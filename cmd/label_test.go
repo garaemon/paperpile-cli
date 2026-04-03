@@ -27,25 +27,25 @@ func (m *mockItemLabelGetter) GetItemLabelNames(itemID string) ([]string, error)
 	return m.names, m.err
 }
 
-type mockLabelAdder struct {
+type mockLabelAssigner struct {
 	calledItemID    string
 	calledLabelName string
 	err             error
 }
 
-func (m *mockLabelAdder) AddLabelByName(itemID, labelName string) error {
+func (m *mockLabelAssigner) AssignLabelByName(itemID, labelName string) error {
 	m.calledItemID = itemID
 	m.calledLabelName = labelName
 	return m.err
 }
 
-type mockLabelRemover struct {
+type mockLabelUnassigner struct {
 	calledItemID    string
 	calledLabelName string
 	err             error
 }
 
-func (m *mockLabelRemover) RemoveLabelByName(itemID, labelName string) error {
+func (m *mockLabelUnassigner) UnassignLabelByName(itemID, labelName string) error {
 	m.calledItemID = itemID
 	m.calledLabelName = labelName
 	return m.err
@@ -142,20 +142,20 @@ func TestExecLabelGet_error(t *testing.T) {
 	}
 }
 
-func TestExecLabelAdd_success(t *testing.T) {
-	adder := &mockLabelAdder{}
+func TestExecLabelAssign_success(t *testing.T) {
+	assigner := &mockLabelAssigner{}
 
 	var buf bytes.Buffer
-	err := execLabelAdd(adder, &buf, "item-1", "ML")
+	err := execLabelAssign(assigner, &buf, "item-1", "ML")
 	if err != nil {
-		t.Fatalf("execLabelAdd() error: %v", err)
+		t.Fatalf("execLabelAssign() error: %v", err)
 	}
 
-	if adder.calledItemID != "item-1" {
-		t.Errorf("calledItemID = %q, want %q", adder.calledItemID, "item-1")
+	if assigner.calledItemID != "item-1" {
+		t.Errorf("calledItemID = %q, want %q", assigner.calledItemID, "item-1")
 	}
-	if adder.calledLabelName != "ML" {
-		t.Errorf("calledLabelName = %q, want %q", adder.calledLabelName, "ML")
+	if assigner.calledLabelName != "ML" {
+		t.Errorf("calledLabelName = %q, want %q", assigner.calledLabelName, "ML")
 	}
 
 	output := buf.String()
@@ -164,30 +164,30 @@ func TestExecLabelAdd_success(t *testing.T) {
 	}
 }
 
-func TestExecLabelAdd_error(t *testing.T) {
-	adder := &mockLabelAdder{err: errors.New("label not found")}
+func TestExecLabelAssign_error(t *testing.T) {
+	assigner := &mockLabelAssigner{err: errors.New("label not found")}
 
 	var buf bytes.Buffer
-	err := execLabelAdd(adder, &buf, "item-1", "Nonexistent")
+	err := execLabelAssign(assigner, &buf, "item-1", "Nonexistent")
 	if err == nil {
-		t.Fatal("execLabelAdd() expected error")
+		t.Fatal("execLabelAssign() expected error")
 	}
 }
 
-func TestExecLabelRemove_success(t *testing.T) {
-	remover := &mockLabelRemover{}
+func TestExecLabelUnassign_success(t *testing.T) {
+	unassigner := &mockLabelUnassigner{}
 
 	var buf bytes.Buffer
-	err := execLabelRemove(remover, &buf, "item-1", "ML")
+	err := execLabelUnassign(unassigner, &buf, "item-1", "ML")
 	if err != nil {
-		t.Fatalf("execLabelRemove() error: %v", err)
+		t.Fatalf("execLabelUnassign() error: %v", err)
 	}
 
-	if remover.calledItemID != "item-1" {
-		t.Errorf("calledItemID = %q, want %q", remover.calledItemID, "item-1")
+	if unassigner.calledItemID != "item-1" {
+		t.Errorf("calledItemID = %q, want %q", unassigner.calledItemID, "item-1")
 	}
-	if remover.calledLabelName != "ML" {
-		t.Errorf("calledLabelName = %q, want %q", remover.calledLabelName, "ML")
+	if unassigner.calledLabelName != "ML" {
+		t.Errorf("calledLabelName = %q, want %q", unassigner.calledLabelName, "ML")
 	}
 }
 
@@ -273,12 +273,12 @@ func TestExecLabelDelete_error(t *testing.T) {
 	}
 }
 
-func TestExecLabelRemove_error(t *testing.T) {
-	remover := &mockLabelRemover{err: errors.New("not on item")}
+func TestExecLabelUnassign_error(t *testing.T) {
+	unassigner := &mockLabelUnassigner{err: errors.New("not on item")}
 
 	var buf bytes.Buffer
-	err := execLabelRemove(remover, &buf, "item-1", "ML")
+	err := execLabelUnassign(unassigner, &buf, "item-1", "ML")
 	if err == nil {
-		t.Fatal("execLabelRemove() expected error")
+		t.Fatal("execLabelUnassign() expected error")
 	}
 }

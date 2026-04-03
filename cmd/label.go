@@ -14,8 +14,8 @@ import (
 func init() {
 	labelCmd.AddCommand(labelListCmd)
 	labelCmd.AddCommand(labelGetCmd)
-	labelCmd.AddCommand(labelAddCmd)
-	labelCmd.AddCommand(labelRemoveCmd)
+	labelCmd.AddCommand(labelAssignCmd)
+	labelCmd.AddCommand(labelUnassignCmd)
 	labelCmd.AddCommand(labelCreateCmd)
 	labelCmd.AddCommand(labelDeleteCmd)
 	rootCmd.AddCommand(labelCmd)
@@ -40,18 +40,18 @@ var labelGetCmd = &cobra.Command{
 	RunE:  runLabelGet,
 }
 
-var labelAddCmd = &cobra.Command{
-	Use:   "add <item_id> <label_name>",
-	Short: "Add a label to a library item",
+var labelAssignCmd = &cobra.Command{
+	Use:   "assign <item_id> <label_name>",
+	Short: "Assign a label to a library item",
 	Args:  cobra.ExactArgs(2),
-	RunE:  runLabelAdd,
+	RunE:  runLabelAssign,
 }
 
-var labelRemoveCmd = &cobra.Command{
-	Use:   "remove <item_id> <label_name>",
-	Short: "Remove a label from a library item",
+var labelUnassignCmd = &cobra.Command{
+	Use:   "unassign <item_id> <label_name>",
+	Short: "Unassign a label from a library item",
 	Args:  cobra.ExactArgs(2),
-	RunE:  runLabelRemove,
+	RunE:  runLabelUnassign,
 }
 
 var labelCreateCmd = &cobra.Command{
@@ -78,14 +78,14 @@ func runLabelGet(cmd *cobra.Command, args []string) error {
 	return execLabelGet(client, os.Stdout, args[0])
 }
 
-func runLabelAdd(cmd *cobra.Command, args []string) error {
+func runLabelAssign(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	return execLabelAdd(client, os.Stdout, args[0], args[1])
+	return execLabelAssign(client, os.Stdout, args[0], args[1])
 }
 
-func runLabelRemove(cmd *cobra.Command, args []string) error {
+func runLabelUnassign(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
-	return execLabelRemove(client, os.Stdout, args[0], args[1])
+	return execLabelUnassign(client, os.Stdout, args[0], args[1])
 }
 
 func runLabelCreate(cmd *cobra.Command, args []string) error {
@@ -135,11 +135,11 @@ func execLabelGet(getter ItemLabelGetter, out io.Writer, itemID string) error {
 	return nil
 }
 
-func execLabelAdd(adder LabelAdder, out io.Writer, itemID, labelName string) error {
-	if err := adder.AddLabelByName(itemID, labelName); err != nil {
-		return fmt.Errorf("failed to add label: %w", err)
+func execLabelAssign(assigner LabelAssigner, out io.Writer, itemID, labelName string) error {
+	if err := assigner.AssignLabelByName(itemID, labelName); err != nil {
+		return fmt.Errorf("failed to assign label: %w", err)
 	}
-	fmt.Fprintf(out, "Label %q added to item %s\n", labelName, itemID)
+	fmt.Fprintf(out, "Label %q assigned to item %s\n", labelName, itemID)
 	return nil
 }
 
@@ -160,10 +160,10 @@ func execLabelCreate(creator LabelCreator, out io.Writer, labelName string) erro
 	return nil
 }
 
-func execLabelRemove(remover LabelRemover, out io.Writer, itemID, labelName string) error {
-	if err := remover.RemoveLabelByName(itemID, labelName); err != nil {
-		return fmt.Errorf("failed to remove label: %w", err)
+func execLabelUnassign(unassigner LabelUnassigner, out io.Writer, itemID, labelName string) error {
+	if err := unassigner.UnassignLabelByName(itemID, labelName); err != nil {
+		return fmt.Errorf("failed to unassign label: %w", err)
 	}
-	fmt.Fprintf(out, "Label %q removed from item %s\n", labelName, itemID)
+	fmt.Fprintf(out, "Label %q unassigned from item %s\n", labelName, itemID)
 	return nil
 }
