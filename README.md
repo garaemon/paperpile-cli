@@ -123,6 +123,14 @@ paperpile label list
 
 Lists all labels in your Paperpile library with their IDs, names, and item counts.
 
+### `label create` - Create a new label
+
+```bash
+paperpile label create <label_name>
+```
+
+Creates a new label in your Paperpile library.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.
