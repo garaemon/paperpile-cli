@@ -115,6 +115,14 @@ paperpile note set <item_id> <text>...
 
 Sets or replaces the note on a library item. Multiple arguments are joined with spaces.
 
+### `label list` - List all labels
+
+```bash
+paperpile label list
+```
+
+Lists all labels in your Paperpile library with their IDs, names, and item counts.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.

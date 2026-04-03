@@ -36,3 +36,8 @@ type NoteGetter interface {
 type NoteUpdater interface {
 	UpdateNote(itemID, note string) error
 }
+
+// LabelFetcher fetches all labels from Paperpile.
+type LabelFetcher interface {
+	FetchLabels() ([]api.Collection, error)
+}
