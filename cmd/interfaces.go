@@ -41,3 +41,8 @@ type NoteUpdater interface {
 type LabelFetcher interface {
 	FetchLabels() ([]api.Collection, error)
 }
+
+// LabelCreator creates a new label.
+type LabelCreator interface {
+	CreateLabel(name string) (string, error)
+}

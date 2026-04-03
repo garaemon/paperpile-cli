@@ -13,6 +13,7 @@ import (
 
 func init() {
 	labelCmd.AddCommand(labelListCmd)
+	labelCmd.AddCommand(labelCreateCmd)
 	rootCmd.AddCommand(labelCmd)
 }
 
@@ -31,6 +32,27 @@ var labelListCmd = &cobra.Command{
 func runLabelList(cmd *cobra.Command, args []string) error {
 	client := api.NewClient(config.GetSession())
 	return execLabelList(client, os.Stdout)
+}
+
+var labelCreateCmd = &cobra.Command{
+	Use:   "create <label_name>",
+	Short: "Create a new label",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runLabelCreate,
+}
+
+func runLabelCreate(cmd *cobra.Command, args []string) error {
+	client := api.NewClient(config.GetSession())
+	return execLabelCreate(client, os.Stdout, args[0])
+}
+
+func execLabelCreate(creator LabelCreator, out io.Writer, labelName string) error {
+	id, err := creator.CreateLabel(labelName)
+	if err != nil {
+		return fmt.Errorf("failed to create label: %w", err)
+	}
+	fmt.Fprintf(out, "Label %q created (ID: %s)\n", labelName, id)
+	return nil
 }
 
 func execLabelList(fetcher LabelFetcher, out io.Writer) error {
