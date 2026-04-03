@@ -16,13 +16,13 @@ type Author struct {
 
 // LibraryItem represents a single item in the Paperpile library.
 type LibraryItem struct {
-	ID      string   `json:"_id"`
-	Title   string   `json:"title"`
-	Author  []Author `json:"author"`
-	Year    string   `json:"year"`
-	Journal string   `json:"journal"`
-	Pubtype string   `json:"pubtype"`
-	Citekey string   `json:"citekey"`
+	ID       string   `json:"_id"`
+	Title    string   `json:"title"`
+	Author   []Author `json:"author"`
+	Year     string   `json:"year"`
+	Journal  string   `json:"journal"`
+	Pubtype  string   `json:"pubtype"`
+	Citekey  string   `json:"citekey"`
 	Trashed  int      `json:"trashed"`
 	Notes    string   `json:"note"`
 	LabelIDs []string `json:"labelIds"`
