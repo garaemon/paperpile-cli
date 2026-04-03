@@ -13,6 +13,7 @@ import (
 
 func init() {
 	labelCmd.AddCommand(labelListCmd)
+	labelCmd.AddCommand(labelGetCmd)
 	rootCmd.AddCommand(labelCmd)
 }
 
@@ -21,11 +22,40 @@ var labelCmd = &cobra.Command{
 	Short: "Manage labels on library items",
 }
 
+var labelGetCmd = &cobra.Command{
+	Use:   "get <item_id>",
+	Short: "Get labels of a library item",
+	Args:  cobra.ExactArgs(1),
+	RunE:  runLabelGet,
+}
+
 var labelListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all available labels",
 	Args:  cobra.NoArgs,
 	RunE:  runLabelList,
+}
+
+func runLabelGet(cmd *cobra.Command, args []string) error {
+	client := api.NewClient(config.GetSession())
+	return execLabelGet(client, os.Stdout, args[0])
+}
+
+func execLabelGet(getter ItemLabelGetter, out io.Writer, itemID string) error {
+	labels, err := getter.GetItemLabelNames(itemID)
+	if err != nil {
+		return fmt.Errorf("failed to get labels: %w", err)
+	}
+
+	if len(labels) == 0 {
+		fmt.Fprintln(out, "(no labels)")
+		return nil
+	}
+
+	for _, name := range labels {
+		fmt.Fprintln(out, name)
+	}
+	return nil
 }
 
 func runLabelList(cmd *cobra.Command, args []string) error {

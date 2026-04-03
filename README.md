@@ -123,6 +123,14 @@ paperpile label list
 
 Lists all labels in your Paperpile library with their IDs, names, and item counts.
 
+### `label get` - Get labels of a library item
+
+```bash
+paperpile label get <item_id>
+```
+
+Prints the label names assigned to the item. If no labels are assigned, prints `(no labels)`.
+
 ## Configuration
 
 Session credentials are stored in `~/.config/paperpile/config.yaml`.
