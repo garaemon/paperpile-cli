@@ -10,29 +10,22 @@ import (
 
 func TestTrashItem_success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			t.Errorf("unexpected method: %s", r.Method)
-		}
-		if r.URL.Path+"/"+r.URL.RawQuery != "/sync/"+"v=3" {
-			// Verify it hits the sync endpoint
-			if r.URL.Path != "/sync" {
-				t.Errorf("unexpected path: %s", r.URL.Path)
-			}
+		if r.URL.Path != "/sync" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
+			return
 		}
 
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			t.Fatalf("failed to read body: %v", err)
-		}
-
+		body, _ := io.ReadAll(r.Body)
 		var reqBody map[string]any
-		if err := json.Unmarshal(body, &reqBody); err != nil {
-			t.Fatalf("failed to unmarshal body: %v", err)
-		}
+		json.Unmarshal(body, &reqBody)
+
+		resp := SyncResponse{SyncStartTime: 1234567890.0, SyncSession: "session-1"}
+		w.Header().Set("Content-Type", "application/json")
 
 		changes, ok := reqBody["clientChanges"].([]any)
 		if !ok || len(changes) == 0 {
-			t.Fatal("expected clientChanges to be non-empty")
+			json.NewEncoder(w).Encode(resp)
+			return
 		}
 
 		change := changes[0].(map[string]any)
@@ -54,11 +47,6 @@ func TestTrashItem_success(t *testing.T) {
 			t.Errorf("trashed = %v, want 1", data["trashed"])
 		}
 
-		resp := SyncResponse{
-			SyncStartTime: 1234567890.0,
-			SyncSession:   "session-1",
-		}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()

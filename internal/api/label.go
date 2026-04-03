@@ -24,66 +24,44 @@ func (c *Client) GetItemLabels(itemID string) ([]string, error) {
 
 // AddLabel adds a label to a library item via the Sync API.
 func (c *Client) AddLabel(itemID, labelID string) error {
-	currentLabels, err := c.GetItemLabels(itemID)
-	if err != nil {
-		return err
-	}
-
-	for _, id := range currentLabels {
-		if id == labelID {
-			return nil // already has this label
-		}
-	}
-
-	newLabels := append(currentLabels, labelID)
-	return c.updateItemLabels(itemID, newLabels)
-}
-
-// RemoveLabel removes a label from a library item via the Sync API.
-func (c *Client) RemoveLabel(itemID, labelID string) error {
-	currentLabels, err := c.GetItemLabels(itemID)
-	if err != nil {
-		return err
-	}
-
-	var newLabels []string
-	found := false
-	for _, id := range currentLabels {
-		if id == labelID {
-			found = true
-			continue
-		}
-		newLabels = append(newLabels, id)
-	}
-
-	if !found {
-		return fmt.Errorf("item %s does not have label %s", itemID, labelID)
-	}
-
-	return c.updateItemLabels(itemID, newLabels)
-}
-
-func (c *Client) updateItemLabels(itemID string, labelIDs []string) error {
-	now := time.Now().Unix()
-
-	if labelIDs == nil {
-		labelIDs = []string{}
-	}
+	now := float64(time.Now().UnixMilli()) / 1000.0
 
 	changes := []map[string]any{
 		{
 			"mcollection": "Library",
 			"action":      "update",
 			"id":          itemID,
-			"timestamp":   float64(now),
-			"fields":      []string{"labels", "updated"},
-			"data":        map[string]any{"labels": labelIDs, "updated": float64(now)},
+			"timestamp":   now,
+			"fields":      []string{"labels"},
+			"push":        []string{labelID},
 		},
 	}
 
 	_, err := c.pushSyncChanges(changes)
 	if err != nil {
-		return fmt.Errorf("failed to sync label change: %w", err)
+		return fmt.Errorf("failed to add label: %w", err)
+	}
+	return nil
+}
+
+// RemoveLabel removes a label from a library item via the Sync API.
+func (c *Client) RemoveLabel(itemID, labelID string) error {
+	now := float64(time.Now().UnixMilli()) / 1000.0
+
+	changes := []map[string]any{
+		{
+			"mcollection": "Library",
+			"action":      "update",
+			"id":          itemID,
+			"timestamp":   now,
+			"fields":      []string{"labels"},
+			"pull":        []string{labelID},
+		},
+	}
+
+	_, err := c.pushSyncChanges(changes)
+	if err != nil {
+		return fmt.Errorf("failed to remove label: %w", err)
 	}
 	return nil
 }

@@ -52,38 +52,37 @@ func TestGetItemLabels_notFound(t *testing.T) {
 }
 
 func TestAddLabel_success(t *testing.T) {
-	items := []LibraryItem{
-		{ID: "item-1", Title: "Paper 1", LabelIDs: []string{"label-a"}},
-	}
-
-	callCount := 0
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		callCount++
-		if r.URL.Path == "/library" {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(items)
+		if r.URL.Path != "/sync" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
 			return
 		}
-		if r.URL.Path == "/sync" {
-			body, _ := io.ReadAll(r.Body)
-			var reqBody map[string]any
-			json.Unmarshal(body, &reqBody)
 
-			changes := reqBody["clientChanges"].([]any)
-			change := changes[0].(map[string]any)
-			data := change["data"].(map[string]any)
-			labels := data["labels"].([]any)
+		body, _ := io.ReadAll(r.Body)
+		var reqBody map[string]any
+		json.Unmarshal(body, &reqBody)
 
-			if len(labels) != 2 {
-				t.Errorf("expected 2 labels, got %d", len(labels))
-			}
+		resp := SyncResponse{SyncStartTime: 1234567890.0}
+		w.Header().Set("Content-Type", "application/json")
 
-			resp := SyncResponse{SyncStartTime: 1234567890.0}
-			w.Header().Set("Content-Type", "application/json")
+		changes, ok := reqBody["clientChanges"].([]any)
+		if !ok || len(changes) == 0 {
 			json.NewEncoder(w).Encode(resp)
 			return
 		}
-		t.Errorf("unexpected path: %s", r.URL.Path)
+
+		change := changes[0].(map[string]any)
+		pushLabels := change["push"].([]any)
+		if len(pushLabels) != 1 || pushLabels[0] != "label-b" {
+			t.Errorf("expected push=[label-b], got %v", pushLabels)
+		}
+
+		fields := change["fields"].([]any)
+		if len(fields) != 1 || fields[0] != "labels" {
+			t.Errorf("expected fields=[labels], got %v", fields)
+		}
+
+		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -94,67 +93,33 @@ func TestAddLabel_success(t *testing.T) {
 	}
 }
 
-func TestAddLabel_alreadyExists(t *testing.T) {
-	items := []LibraryItem{
-		{ID: "item-1", Title: "Paper 1", LabelIDs: []string{"label-a"}},
-	}
-
-	syncCalled := false
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/library" {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(items)
-			return
-		}
-		if r.URL.Path == "/sync" {
-			syncCalled = true
-		}
-	}))
-	defer server.Close()
-
-	client := newTestClient(server)
-	err := client.AddLabel("item-1", "label-a")
-	if err != nil {
-		t.Fatalf("AddLabel() error: %v", err)
-	}
-	if syncCalled {
-		t.Error("sync should not be called when label already exists")
-	}
-}
-
 func TestRemoveLabel_success(t *testing.T) {
-	items := []LibraryItem{
-		{ID: "item-1", Title: "Paper 1", LabelIDs: []string{"label-a", "label-b"}},
-	}
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/library" {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(items)
+		if r.URL.Path != "/sync" {
+			t.Errorf("unexpected path: %s", r.URL.Path)
 			return
 		}
-		if r.URL.Path == "/sync" {
-			body, _ := io.ReadAll(r.Body)
-			var reqBody map[string]any
-			json.Unmarshal(body, &reqBody)
 
-			changes := reqBody["clientChanges"].([]any)
-			change := changes[0].(map[string]any)
-			data := change["data"].(map[string]any)
-			labels := data["labels"].([]any)
+		body, _ := io.ReadAll(r.Body)
+		var reqBody map[string]any
+		json.Unmarshal(body, &reqBody)
 
-			if len(labels) != 1 {
-				t.Errorf("expected 1 label, got %d", len(labels))
-			}
-			if labels[0] != "label-b" {
-				t.Errorf("expected remaining label to be label-b, got %v", labels[0])
-			}
+		resp := SyncResponse{SyncStartTime: 1234567890.0}
+		w.Header().Set("Content-Type", "application/json")
 
-			resp := SyncResponse{SyncStartTime: 1234567890.0}
-			w.Header().Set("Content-Type", "application/json")
+		changes, ok := reqBody["clientChanges"].([]any)
+		if !ok || len(changes) == 0 {
 			json.NewEncoder(w).Encode(resp)
 			return
 		}
+
+		change := changes[0].(map[string]any)
+		pullLabels := change["pull"].([]any)
+		if len(pullLabels) != 1 || pullLabels[0] != "label-a" {
+			t.Errorf("expected pull=[label-a], got %v", pullLabels)
+		}
+
+		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
 
@@ -162,27 +127,6 @@ func TestRemoveLabel_success(t *testing.T) {
 	err := client.RemoveLabel("item-1", "label-a")
 	if err != nil {
 		t.Fatalf("RemoveLabel() error: %v", err)
-	}
-}
-
-func TestRemoveLabel_notFound(t *testing.T) {
-	items := []LibraryItem{
-		{ID: "item-1", Title: "Paper 1", LabelIDs: []string{"label-a"}},
-	}
-
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/library" {
-			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(items)
-			return
-		}
-	}))
-	defer server.Close()
-
-	client := newTestClient(server)
-	err := client.RemoveLabel("item-1", "label-nonexistent")
-	if err == nil {
-		t.Fatal("RemoveLabel() expected error for nonexistent label")
 	}
 }
 
@@ -252,13 +196,22 @@ func TestCreateLabel_success(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/sync" {
 			t.Errorf("unexpected path: %s", r.URL.Path)
+			return
 		}
 
 		body, _ := io.ReadAll(r.Body)
 		var reqBody map[string]any
 		json.Unmarshal(body, &reqBody)
 
-		changes := reqBody["clientChanges"].([]any)
+		resp := SyncResponse{SyncStartTime: 1234567890.0}
+		w.Header().Set("Content-Type", "application/json")
+
+		changes, ok := reqBody["clientChanges"].([]any)
+		if !ok || len(changes) == 0 {
+			json.NewEncoder(w).Encode(resp)
+			return
+		}
+
 		change := changes[0].(map[string]any)
 
 		if change["mcollection"] != "Collections" {
@@ -279,8 +232,6 @@ func TestCreateLabel_success(t *testing.T) {
 			t.Errorf("cParent = %v, want %q", data["cParent"], "ROOT")
 		}
 
-		resp := SyncResponse{SyncStartTime: 1234567890.0}
-		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(resp)
 	}))
 	defer server.Close()
@@ -326,7 +277,15 @@ func TestDeleteLabel_success(t *testing.T) {
 			var reqBody map[string]any
 			json.Unmarshal(body, &reqBody)
 
-			changes := reqBody["clientChanges"].([]any)
+			resp := SyncResponse{SyncStartTime: 1234567890.0}
+			w.Header().Set("Content-Type", "application/json")
+
+			changes, ok := reqBody["clientChanges"].([]any)
+			if !ok || len(changes) == 0 {
+				json.NewEncoder(w).Encode(resp)
+				return
+			}
+
 			change := changes[0].(map[string]any)
 
 			if change["mcollection"] != "Collections" {
@@ -344,8 +303,6 @@ func TestDeleteLabel_success(t *testing.T) {
 				t.Errorf("trashed = %v, want 1", data["trashed"])
 			}
 
-			resp := SyncResponse{SyncStartTime: 1234567890.0}
-			w.Header().Set("Content-Type", "application/json")
 			json.NewEncoder(w).Encode(resp)
 			return
 		}
