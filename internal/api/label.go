@@ -7,6 +7,68 @@ import (
 	"github.com/google/uuid"
 )
 
+// GetItemLabels fetches the label IDs for a specific library item.
+func (c *Client) GetItemLabels(itemID string) ([]string, error) {
+	items, err := c.FetchLibrary()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch library: %w", err)
+	}
+
+	for _, item := range items {
+		if item.ID == itemID {
+			return item.LabelIDs, nil
+		}
+	}
+	return nil, fmt.Errorf("item %s not found", itemID)
+}
+
+// GetItemLabelNames fetches the label names for a specific library item.
+func (c *Client) GetItemLabelNames(itemID string) ([]string, error) {
+	labelIDs, err := c.GetItemLabels(itemID)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(labelIDs) == 0 {
+		return nil, nil
+	}
+
+	labels, err := c.FetchLabels()
+	if err != nil {
+		return nil, fmt.Errorf("failed to fetch labels: %w", err)
+	}
+
+	labelMap := make(map[string]string, len(labels))
+	for _, label := range labels {
+		labelMap[label.ID] = label.Name
+	}
+
+	var names []string
+	for _, id := range labelIDs {
+		if name, ok := labelMap[id]; ok {
+			names = append(names, name)
+		} else {
+			names = append(names, id)
+		}
+	}
+	return names, nil
+}
+
+// ResolveLabelName finds a label ID by name. Returns the label ID or an error.
+func (c *Client) ResolveLabelName(name string) (string, error) {
+	labels, err := c.FetchLabels()
+	if err != nil {
+		return "", err
+	}
+
+	for _, label := range labels {
+		if label.Name == name {
+			return label.ID, nil
+		}
+	}
+	return "", fmt.Errorf("label %q not found", name)
+}
+
 // CreateLabel creates a new label via the Sync API.
 func (c *Client) CreateLabel(name string) (string, error) {
 	now := float64(time.Now().UnixMilli()) / 1000.0

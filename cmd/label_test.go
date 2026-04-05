@@ -66,6 +66,58 @@ func TestExecLabelList_error(t *testing.T) {
 	}
 }
 
+type mockItemLabelGetter struct {
+	names []string
+	err   error
+}
+
+func (m *mockItemLabelGetter) GetItemLabelNames(itemID string) ([]string, error) {
+	return m.names, m.err
+}
+
+func TestExecLabelGet_success(t *testing.T) {
+	getter := &mockItemLabelGetter{names: []string{"ML", "Robotics"}}
+
+	var buf bytes.Buffer
+	err := execLabelGet(getter, &buf, "item-1")
+	if err != nil {
+		t.Fatalf("execLabelGet() error: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "ML") {
+		t.Errorf("output should contain 'ML', got: %s", output)
+	}
+	if !strings.Contains(output, "Robotics") {
+		t.Errorf("output should contain 'Robotics', got: %s", output)
+	}
+}
+
+func TestExecLabelGet_empty(t *testing.T) {
+	getter := &mockItemLabelGetter{names: nil}
+
+	var buf bytes.Buffer
+	err := execLabelGet(getter, &buf, "item-1")
+	if err != nil {
+		t.Fatalf("execLabelGet() error: %v", err)
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "(no labels)") {
+		t.Errorf("output should contain '(no labels)', got: %s", output)
+	}
+}
+
+func TestExecLabelGet_error(t *testing.T) {
+	getter := &mockItemLabelGetter{err: errors.New("not found")}
+
+	var buf bytes.Buffer
+	err := execLabelGet(getter, &buf, "item-1")
+	if err == nil {
+		t.Fatal("execLabelGet() expected error")
+	}
+}
+
 type mockLabelCreator struct {
 	calledName string
 	returnedID string

@@ -42,6 +42,11 @@ type LabelFetcher interface {
 	FetchLabels() ([]api.Collection, error)
 }
 
+// ItemLabelGetter retrieves label names for a library item.
+type ItemLabelGetter interface {
+	GetItemLabelNames(itemID string) ([]string, error)
+}
+
 // LabelCreator creates a new label.
 type LabelCreator interface {
 	CreateLabel(name string) (string, error)
