@@ -228,8 +228,8 @@ func TestAssignLabel_success(t *testing.T) {
 				requestCount++
 				change := changes[0].(map[string]any)
 
-				if change["mcollection"] != "LibraryItems" {
-					t.Errorf("mcollection = %v, want %q", change["mcollection"], "LibraryItems")
+				if change["mcollection"] != "Library" {
+					t.Errorf("mcollection = %v, want %q", change["mcollection"], "Library")
 				}
 				if change["action"] != "update" {
 					t.Errorf("action = %v, want %q", change["action"], "update")
@@ -238,12 +238,20 @@ func TestAssignLabel_success(t *testing.T) {
 					t.Errorf("id = %v, want %q", change["id"], "item-1")
 				}
 
+				fields, ok := change["fields"].([]any)
+				if !ok || len(fields) != 2 {
+					t.Errorf("fields = %v, want [labelIds updated]", change["fields"])
+				}
+
 				data := change["data"].(map[string]any)
 				labelIDs, ok := data["labelIds"].([]any)
 				if !ok {
 					t.Errorf("labelIds is not an array")
 				} else if len(labelIDs) != 2 {
 					t.Errorf("labelIds length = %d, want 2", len(labelIDs))
+				}
+				if _, ok := data["updated"].(float64); !ok {
+					t.Errorf("updated should be a float64, got %T", data["updated"])
 				}
 			}
 

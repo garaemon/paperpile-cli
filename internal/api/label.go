@@ -126,13 +126,12 @@ func (c *Client) AssignLabel(itemID, labelName string) error {
 
 	changes := []map[string]any{
 		{
-			"mcollection": "LibraryItems",
+			"mcollection": "Library",
 			"action":      "update",
 			"id":          itemID,
 			"timestamp":   now,
-			"data": map[string]any{
-				"labelIds": newLabelIDs,
-			},
+			"fields":      []string{"labelIds", "updated"},
+			"data":        map[string]any{"labelIds": newLabelIDs, "updated": now},
 		},
 	}
 
