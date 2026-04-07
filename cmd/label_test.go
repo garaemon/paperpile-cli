@@ -207,3 +207,89 @@ func TestExecLabelUnassign_error(t *testing.T) {
 		t.Fatal("execLabelUnassign() expected error")
 	}
 }
+
+type mockLabelAssigner struct {
+	calledItemID    string
+	calledLabelName string
+	err             error
+}
+
+func (m *mockLabelAssigner) AssignLabel(itemID, labelName string) error {
+	m.calledItemID = itemID
+	m.calledLabelName = labelName
+	return m.err
+}
+
+func TestExecLabelAssign_success(t *testing.T) {
+	assigner := &mockLabelAssigner{}
+
+	var buf bytes.Buffer
+	err := execLabelAssign(assigner, &buf, "item-1", "ML")
+	if err != nil {
+		t.Fatalf("execLabelAssign() error: %v", err)
+	}
+
+	if assigner.calledItemID != "item-1" {
+		t.Errorf("calledItemID = %q, want %q", assigner.calledItemID, "item-1")
+	}
+	if assigner.calledLabelName != "ML" {
+		t.Errorf("calledLabelName = %q, want %q", assigner.calledLabelName, "ML")
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "ML") {
+		t.Errorf("output should mention label name, got: %s", output)
+	}
+}
+
+func TestExecLabelAssign_error(t *testing.T) {
+	assigner := &mockLabelAssigner{err: errors.New("assign failed")}
+
+	var buf bytes.Buffer
+	err := execLabelAssign(assigner, &buf, "item-1", "ML")
+	if err == nil {
+		t.Fatal("execLabelAssign() expected error")
+	}
+}
+
+type mockLabelDeleter struct {
+	calledName string
+	err        error
+}
+
+func (m *mockLabelDeleter) DeleteLabel(labelName string) error {
+	m.calledName = labelName
+	return m.err
+}
+
+func TestExecLabelDelete_success(t *testing.T) {
+	deleter := &mockLabelDeleter{}
+
+	var buf bytes.Buffer
+	err := execLabelDelete(deleter, &buf, "ML")
+	if err != nil {
+		t.Fatalf("execLabelDelete() error: %v", err)
+	}
+
+	if deleter.calledName != "ML" {
+		t.Errorf("calledName = %q, want %q", deleter.calledName, "ML")
+	}
+
+	output := buf.String()
+	if !strings.Contains(output, "ML") {
+		t.Errorf("output should mention label name, got: %s", output)
+	}
+	if !strings.Contains(output, "deleted") {
+		t.Errorf("output should mention 'deleted', got: %s", output)
+	}
+}
+
+func TestExecLabelDelete_error(t *testing.T) {
+	deleter := &mockLabelDeleter{err: errors.New("delete failed")}
+
+	var buf bytes.Buffer
+	err := execLabelDelete(deleter, &buf, "ML")
+	if err == nil {
+		t.Fatal("execLabelDelete() expected error")
+	}
+}
