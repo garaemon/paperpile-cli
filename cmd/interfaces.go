@@ -36,3 +36,33 @@ type NoteGetter interface {
 type NoteUpdater interface {
 	UpdateNote(itemID, note string) error
 }
+
+// LabelFetcher fetches all labels from Paperpile.
+type LabelFetcher interface {
+	FetchLabels() ([]api.Collection, error)
+}
+
+// ItemLabelGetter retrieves label names for a library item.
+type ItemLabelGetter interface {
+	GetItemLabelNames(itemID string) ([]string, error)
+}
+
+// LabelCreator creates a new label.
+type LabelCreator interface {
+	CreateLabel(name string) (string, error)
+}
+
+// LabelUnassigner removes a label from a library item.
+type LabelUnassigner interface {
+	UnassignLabel(itemID, labelName string) error
+}
+
+// LabelAssigner assigns a label to a library item.
+type LabelAssigner interface {
+	AssignLabel(itemID, labelName string) error
+}
+
+// LabelDeleter deletes a label.
+type LabelDeleter interface {
+	DeleteLabel(labelName string) error
+}
