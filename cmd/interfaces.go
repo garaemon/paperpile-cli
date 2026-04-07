@@ -52,6 +52,11 @@ type LabelCreator interface {
 	CreateLabel(name string) (string, error)
 }
 
+// LabelAssigner assigns a label to a library item.
+type LabelAssigner interface {
+	AssignLabel(itemID, labelName string) error
+}
+
 // LabelDeleter deletes a label.
 type LabelDeleter interface {
 	DeleteLabel(labelName string) error
