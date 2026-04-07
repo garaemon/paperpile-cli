@@ -229,14 +229,19 @@ func TestUnassignLabel_success(t *testing.T) {
 				requestCount++
 				change := changes[0].(map[string]any)
 
-				if change["mcollection"] != "LibraryItems" {
-					t.Errorf("mcollection = %v, want %q", change["mcollection"], "LibraryItems")
+				if change["mcollection"] != "Library" {
+					t.Errorf("mcollection = %v, want %q", change["mcollection"], "Library")
 				}
 				if change["action"] != "update" {
 					t.Errorf("action = %v, want %q", change["action"], "update")
 				}
 				if change["id"] != "item-1" {
 					t.Errorf("id = %v, want %q", change["id"], "item-1")
+				}
+
+				fields, ok := change["fields"].([]any)
+				if !ok || len(fields) != 2 {
+					t.Errorf("fields = %v, want [labelIds updated]", change["fields"])
 				}
 
 				data := change["data"].(map[string]any)
@@ -247,6 +252,9 @@ func TestUnassignLabel_success(t *testing.T) {
 					t.Errorf("labelIds length = %d, want 1", len(labelIDs))
 				} else if labelIDs[0] != "label-2" {
 					t.Errorf("remaining labelId = %v, want %q", labelIDs[0], "label-2")
+				}
+				if _, ok := data["updated"].(float64); !ok {
+					t.Errorf("updated should be a float64, got %T", data["updated"])
 				}
 			}
 
